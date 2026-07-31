@@ -15,6 +15,8 @@ defineProps({
 </script>
 
 <style scoped>
+@reference "~/assets/css/app.css";
+
 h3 {
   @apply text-lg font-bold mt-7 mb-3 text-theme-secondary;
 }

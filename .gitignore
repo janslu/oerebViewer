@@ -100,3 +100,7 @@ sw.*
 # Nuxt intermediary output
 # "real" generated files are in dist
 .output/
+
+# playwright
+/test-results/
+/playwright-report/

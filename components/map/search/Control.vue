@@ -122,23 +122,27 @@ onMounted(() => {
 </script>
 
 <style>
+@reference "~/assets/css/app.css";
+
 .search-dropdown {
   width: 500px;
   max-width: calc(100vw - 5.5rem);
 
   & .multiselect__content-wrapper {
-    @apply bg-theme-primary text-theme-primary bg-opacity-90 border-none;
+    @apply text-theme-primary border-none;
+    background-color: rgba(var(--color-background-primary), 0.9);
 
     & .multiselect__content {
       & .multiselect__option--highlight {
-        @apply bg-white bg-opacity-10;
+        @apply bg-white/10;
       }
     }
   }
 
   & .multiselect__tags {
     min-height: 44px;
-    @apply px-3 py-0 bg-theme-primary text-theme-primary bg-opacity-90 rounded border-none text-base flex items-center;
+    @apply px-3 py-0 text-theme-primary rounded-sm border-none text-base flex items-center;
+    background-color: rgba(var(--color-background-primary), 0.9);
 
     & .multiselect__single {
       @apply text-theme-primary bg-transparent hover:bg-transparent;

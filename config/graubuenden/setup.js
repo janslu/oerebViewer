@@ -141,11 +141,11 @@ export const mapLayerStyles = {}
 export const oerebService = {
   // get EGRID by coordinates - placeholder {{latitude}} and {{longitude}}
   getEGRIDByCoordinate:
-    'https://oereb.geo.gr.ch/main/oereb/getegrid/json/?GNSS={{latitude}},{{longitude}}',
+    'https://oereb.geo.gr.ch/oereb/getegrid/json?GNSS={{latitude}},{{longitude}}&GEOMETRY=True',
 
   // get Extract by EGRID - placeholder {{EGRID}} and {{language}}
   getExtractByEGRID:
-    'https://oereb.geo.gr.ch/main/oereb/extract/reduced/json/{{EGRID}}?LANG={{language}}&geometry=true',
+    'https://oereb.geo.gr.ch/oereb/extract/json?EGRID={{EGRID}}&LANG={{language}}&GEOMETRY=true',
 }
 
 /**
@@ -156,7 +156,7 @@ export const oerebService = {
 export const pdfService = {
   // get PDF by EGRID - placeholder {{EGRID}} and {{language}}
   getPDFUrlByEGRID:
-    'https://oereb.geo.gr.ch/main/oereb/extract/reduced/pdf/{{EGRID}}?lang={{language}}',
+    'https://oereb.geo.gr.ch/oereb/extract/pdf?EGRID={{EGRID}}&LANG={{language}}',
 }
 
 /**

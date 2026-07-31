@@ -16,7 +16,7 @@ interface LayerConfig {
   capabilityMatrixSet?: string
 }
 
-const mergeConfigs = (defaultObj: ConfigObject, customObj?: ConfigObject): ConfigObject => {
+export const mergeConfigs = (defaultObj: ConfigObject, customObj?: ConfigObject): ConfigObject => {
   if (!customObj) return defaultObj
 
   return Object.keys(defaultObj).reduce<ConfigObject>((acc, key) => {
@@ -52,9 +52,14 @@ const loadCustomConfig = async (configContext: string | null = null): Promise<Co
   }
 }
 
-export const getConfig = async (): Promise<ConfigObject> => {
-  const customConfig = await loadCustomConfig()
-  return mergeConfigs(defaultConfig, customConfig)
+// the context never changes at runtime, so the merged config is computed once
+let mergedConfig: Promise<ConfigObject> | null = null
+
+export const getConfig = (): Promise<ConfigObject> => {
+  mergedConfig ??= loadCustomConfig().then(customConfig =>
+    mergeConfigs(defaultConfig, customConfig),
+  )
+  return mergedConfig
 }
 
 // Export individual configurations (these will be populated after getConfig is called)

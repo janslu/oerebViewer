@@ -1,6 +1,37 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Asap', 'Helvetica', 'Arial', sans-serif;
+  --breakpoint-3xl: 1920px;
+}
+
+/*
+  Theme color utilities
+  ---------------------
+  The same suffix resolves to a different css variable per property
+  (text-theme-primary -> --color-text-primary, bg-theme-primary ->
+  --color-background-primary), so they are defined as explicit utilities
+  instead of @theme colors. The variables are RGB triplets overridable
+  per config context in config/<context>/setup.css.
+*/
+@utility text-theme-primary { color: rgb(var(--color-text-primary)); }
+@utility text-theme-secondary { color: rgb(var(--color-text-secondary)); }
+@utility text-theme-accent { color: rgb(var(--color-text-accent)); }
+@utility text-theme-decent { color: rgb(var(--color-text-decent)); }
+@utility text-theme-base { color: rgb(var(--color-text-base)); }
+@utility text-theme-active { color: rgb(var(--color-text-active)); }
+
+@utility bg-theme-primary { background-color: rgb(var(--color-background-primary)); }
+@utility bg-theme-secondary { background-color: rgb(var(--color-background-secondary)); }
+@utility bg-theme-thirdly { background-color: rgb(var(--color-background-thirdly)); }
+@utility bg-theme-accent { background-color: rgb(var(--color-background-accent)); }
+@utility bg-theme-accent-dark { background-color: rgb(var(--color-background-accent-dark)); }
+@utility bg-theme-base { background-color: rgb(var(--color-background-base)); }
+@utility bg-theme-active { background-color: rgb(var(--color-background-active)); }
+
+@utility border-theme-primary { border-color: rgb(var(--color-border-primary)); }
+@utility border-theme-secondary { border-color: rgb(var(--color-border-secondary)); }
+@utility border-l-theme-primary { border-left-color: rgb(var(--color-border-primary)); }
 
 @layer base {
   :root {
@@ -38,8 +69,21 @@
     --col-warning: #DA9E1A;
     --col-warning-dark: #966D15;
   }
-}
 
+  /* tailwind 3 compatibility: default border color and button cursor */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: #e5e7eb;
+  }
+
+  button:not(:disabled),
+  [role='button']:not(:disabled) {
+    cursor: pointer;
+  }
+}
 
 body {
   @apply antialiased;

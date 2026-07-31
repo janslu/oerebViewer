@@ -20,7 +20,7 @@ NUXT_ENV_TOKEN_PASSWORD=password
 See [Custom Configuration](#custom-configuration) for configuration instructions.
 
 ## Platform
-If you don't use Docker, the `Node` runtime at the latest version of `16` is required for the build step.
+If you don't use Docker, the `Node` runtime version `20.19` or newer (`22` recommended, see `.nvmrc`) is required for the build step.
 Check out [Node](https://nodejs.org/) for more information.
 
 # Use with Docker
@@ -48,20 +48,7 @@ docker run -it -p 3000:3000 oereb-viewer
 
 # Use without Docker
 For detailed explanation on how things work,
-check out [Nuxt.js docs](https://nuxtjs.org).
-
-## Based on Node server
-The OEREB-Viewer provides a simple server based on Node. A process monitoring is required, to ensure continuous uptime.
-
-```bash
-# install dependencies
-npm install
-
-# build to be served with node server
-# and launch server localhost:3000
-npm run build
-npm run start
-```
+check out the [Nuxt docs](https://nuxt.com).
 
 ## Based on static files
 Static files are generated in the `./dist` directory. A web server is required to serve the static files.
@@ -72,6 +59,9 @@ npm install
 
 # build to be served statically from ./dist
 npm run generate
+
+# serve ./dist locally
+npm run start
 ```
 
 ## Build for development and testing purpose
@@ -81,6 +71,13 @@ npm install
 
 # build for development via localhost:3000
 npm run dev
+
+# run unit tests / coverage report
+npm run test
+npm run test:coverage
+
+# lint
+npm run lint
 ```
 
 # Custom Configuration

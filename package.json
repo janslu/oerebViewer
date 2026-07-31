@@ -1,9 +1,9 @@
 {
   "name": "oereb-viewer",
   "version": "3.0.0",
-  "description": "Source code to setup a viewer for the Cadastre of Public-law Restrictions on landownership (DE: ÖREB-Kataster) displaying the JSON-Extract of the PLR-cadastre.",
+  "description": "Source code to setup a viewer for the Cadastre of Public-law Restrictions on landownership (DE: \u00d6REB-Kataster) displaying the JSON-Extract of the PLR-cadastre.",
   "engines": {
-    "node": "20.x"
+    "node": ">=20.19.0"
   },
   "type": "module",
   "scripts": {
@@ -13,7 +13,11 @@
     "lint:js": "eslint",
     "lint": "npm run lint:js",
     "lint:fix": "eslint --fix",
-    "json2ts": "json2ts -i 'schemas/**/*.json' -o types/"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "json2ts": "json2ts -i 'schemas/**/*.json' -o types/",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "author": "kanton-bern",
   "license": "MIT",
@@ -22,26 +26,31 @@
   },
   "homepage": "https://github.com/kanton-bern/oerebViewer",
   "dependencies": {
-    "nuxt": "^3.13.2",
+    "nuxt": "^4.5.1",
     "ol": "^10.2.0",
     "proj4": "^2.8.0",
     "vue-multiselect": "^3.1.0",
     "vue3-toastify": "^0.2.3"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^2.1.0",
-    "@nuxt/eslint": "^1.1.0",
-    "@nuxtjs/i18n": "^9.2.1",
-    "@nuxtjs/tailwindcss": "^6.12.1",
-    "@pinia/nuxt": "^0.10.1",
-    "@stylistic/eslint-plugin": "^4.0.1",
-    "eslint": "^9.11.1",
+    "@nuxt/devtools": "^3.4.0",
+    "@nuxt/eslint": "^1.16.0",
+    "@nuxtjs/i18n": "^10.6.0",
+    "@pinia/nuxt": "^1.0.1",
+    "@playwright/test": "^1.62.1",
+    "@stylistic/eslint-plugin": "^5.10.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vue/test-utils": "^2.4.11",
+    "eslint": "^10.8.0",
+    "happy-dom": "^20.11.1",
     "json-schema-to-typescript": "^15.0.2",
-    "pinia": "^3.0.1",
-    "pinia-plugin-persistedstate": "^4.0.2",
+    "pinia": "^4.0.2",
+    "pinia-plugin-persistedstate": "^4.7.1",
     "postcss": "^8.4.13",
     "prettier": "^3.3.3",
-    "tailwindcss": "^3.0.24",
+    "tailwindcss": "^4.3.3",
+    "vitest": "^4.1.10",
     "vue": "^3.5.8",
     "vue-router": "^4.4.5"
   },

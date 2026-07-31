@@ -127,6 +127,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style>
+@reference "~/assets/css/app.css";
+
 h2 {
   @apply text-lg leading-tight font-bold mt-12 text-theme-secondary;
 }
