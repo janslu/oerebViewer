@@ -1,5 +1,5 @@
 # build the nuxt app
-FROM node:20-alpine as build-app
+FROM node:22-alpine as build-app
 
 # create destination directory
 RUN mkdir -p /app

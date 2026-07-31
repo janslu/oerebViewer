@@ -3,7 +3,7 @@
   "version": "3.0.0",
   "description": "Source code to setup a viewer for the Cadastre of Public-law Restrictions on landownership (DE: ÖREB-Kataster) displaying the JSON-Extract of the PLR-cadastre.",
   "engines": {
-    "node": "20.x"
+    "node": ">=20.19.0"
   },
   "type": "module",
   "scripts": {
@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/kanton-bern/oerebViewer",
   "dependencies": {
-    "nuxt": "^3.21.10",
+    "nuxt": "^4.5.1",
     "ol": "^10.2.0",
     "proj4": "^2.8.0",
     "vue-multiselect": "^3.1.0",
@@ -35,13 +35,13 @@
     "@nuxt/eslint": "^1.1.0",
     "@nuxtjs/i18n": "^10.6.0",
     "@nuxtjs/tailwindcss": "^6.12.1",
-    "@pinia/nuxt": "^0.10.1",
+    "@pinia/nuxt": "^1.0.1",
     "@stylistic/eslint-plugin": "^4.0.1",
     "eslint": "^9.11.1",
     "happy-dom": "^20.11.1",
     "json-schema-to-typescript": "^15.0.2",
-    "pinia": "^3.0.1",
-    "pinia-plugin-persistedstate": "^4.0.2",
+    "pinia": "^4.0.2",
+    "pinia-plugin-persistedstate": "^4.7.1",
     "postcss": "^8.4.13",
     "prettier": "^3.3.3",
     "tailwindcss": "^3.0.24",
