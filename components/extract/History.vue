@@ -11,7 +11,7 @@
         :to="item.url"
         class="flex gap-x-2 hover:underline"
       >
-        <div class="w-8 flex-grow-0 flex-shrink-0">
+        <div class="w-8 grow-0 shrink-0">
           <div
             :style="`background-image: url(${item.municipalityLogo})`"
             class="municipality-banner"

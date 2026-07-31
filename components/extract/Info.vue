@@ -93,7 +93,7 @@ const updateDate = computed(() => {
           :title="t('detail_owner_info', templateVars)"
         >
           {{ $t('detail_owner_info', templateVars) }}
-          <IconOpen class="w-4 h-4 flex-shrink-0" />
+          <IconOpen class="w-4 h-4 shrink-0" />
         </a>
       </div>
     </div>

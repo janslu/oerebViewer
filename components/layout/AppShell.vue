@@ -1,13 +1,13 @@
 <template>
   <div class="flex flex-col h-screen">
-    <div class="h-16 flex-shrink-0 drop-shadow">
+    <div class="h-16 shrink-0 drop-shadow-sm">
       <slot name="header" />
     </div>
     <div class="flex flex-1 relative overflow-hidden">
       <Transition name="slide-fade">
         <aside
           v-show="alwaysShowMenu || appStore.isMenuOpen"
-          class="z-10 overflow-hidden drop-shadow flex-none h-full max-w-full w-80 md:w-100 lg:w-112 duration-500 absolute lg:relative"
+          class="z-10 overflow-hidden drop-shadow-sm flex-none h-full max-w-full w-80 md:w-100 lg:w-112 duration-500 absolute lg:relative"
           :class="{ 'transition-all': !alwaysShowMenu }"
         >
           <slot name="sidebar" />
@@ -42,6 +42,8 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+@reference "~/assets/css/app.css";
+
 /*
   Enter and leave animations can use different
   durations and timing functions.

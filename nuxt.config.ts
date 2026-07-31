@@ -1,4 +1,5 @@
 import { defineNuxtConfig } from 'nuxt/config'
+import tailwindcss from '@tailwindcss/vite'
 import getLocales, { preloadContext } from './config/locales'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
@@ -71,8 +72,6 @@ export default defineNuxtConfig({
     '@nuxt/devtools',
     // https://go.nuxtjs.dev/eslint
     '@nuxt/eslint',
-    // https://go.nuxtjs.dev/tailwindcss
-    '@nuxtjs/tailwindcss',
     // https://pinia.vuejs.org/cookbook/plugins.html
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
@@ -80,6 +79,11 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '~/modules/setupModule',
   ],
+
+  // https://tailwindcss.com/docs/installation/framework-guides
+  vite: {
+    plugins: [tailwindcss()],
+  },
 
   // i18n configuration: https://i18n.nuxtjs.org/options-reference
   i18n: {

@@ -24,6 +24,8 @@ defineProps({
 </script>
 
 <style scoped>
+@reference "~/assets/css/app.css";
+
 .logo {
   display: block;
   background-size: contain;
