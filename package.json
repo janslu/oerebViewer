@@ -31,7 +31,7 @@
     "vue3-toastify": "^0.2.3"
   },
   "devDependencies": {
-    "@nuxt/devtools": "^2.7.0",
+    "@nuxt/devtools": "^3.4.0",
     "@nuxt/eslint": "^1.16.0",
     "@nuxtjs/i18n": "^10.6.0",
     "@pinia/nuxt": "^1.0.1",
