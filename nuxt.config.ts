@@ -1,6 +1,6 @@
 import { defineNuxtConfig } from 'nuxt/config'
 import tailwindcss from '@tailwindcss/vite'
-import getLocales, { preloadContext } from './config/locales'
+import getLocales from './config/locales'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -8,8 +8,7 @@ const configContext = process.env.NUXT_ENV_CONFIG_CONTEXT || 'defaults'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Preload the context to make it available synchronously
-preloadContext(configContext)
+const locales = await getLocales(configContext)
 
 export default defineNuxtConfig({
   // disable server side rendering: https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-ssr
@@ -60,7 +59,6 @@ export default defineNuxtConfig({
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    '~/plugins/i18nLoader.ts',
     '~/plugins/vueToastification.ts',
   ],
 
@@ -87,12 +85,12 @@ export default defineNuxtConfig({
 
   // i18n configuration: https://i18n.nuxtjs.org/options-reference
   i18n: {
-    locales: getLocales(configContext),
+    locales,
     defaultLocale: 'de',
     strategy: 'prefix_except_default',
   },
 
   logLevel: 'verbose',
 
-  compatibilityDate: '2024-09-26',
+  compatibilityDate: '2026-07-31',
 })
