@@ -90,5 +90,5 @@ const toggleImprintAndLegalVisibility = () => {
 </template>
 
 <style>
-@import '~/config/defaults/setup.css';
+@import '#build/setup-context.css';
 </style>
