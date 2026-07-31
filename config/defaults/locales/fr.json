@@ -62,5 +62,8 @@
   "no_property_found": "Ce bien-fonds se situe à l'extérieur des zones disposant d'une Mensuration Officielle de qualité suffisante, il n'est pas possible démarrer l'évaluation.",
   "amount": "Nombre",
   "detail_updated_date": "Etat de la mensuration officielle",
-  "external_instructions": "Instructions pour le portail"
+  "external_instructions": "Instructions pour le portail",
+  "search_coordinate_wgs84": "Coordonnée WGS84",
+  "search_coordinate_lv95": "Coordonnée nationale MN95",
+  "search_coordinate_lv03": "Coordonnée nationale MN03"
 }

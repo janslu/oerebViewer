@@ -11,7 +11,7 @@ vi.mock('vue-router', () => ({
 }))
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ locale: ref('de') }),
+  useI18n: () => ({ locale: ref('de'), t: (key: string) => key }),
 }))
 
 vi.mock('~/config/setup', () => ({
@@ -99,6 +99,39 @@ describe('map store', () => {
       await expect(store.updateSearchQuery('Bern')).rejects.toThrow('network down')
       expect(store.searchResults).toEqual([])
       expect(store.isSearchResultLoading).toBe(false)
+    })
+
+    it('resolves coordinate queries locally without calling the search service', async () => {
+      const store = useMapStore()
+      await store.initializeStore()
+      const fetchMock = vi.fn()
+      vi.stubGlobal('fetch', fetchMock)
+
+      await store.updateSearchQuery('2600983, 1197426')
+
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(store.searchResults).toHaveLength(1)
+      expect(store.searchResults[0]).toMatchObject({
+        id: 'coordinate-2600983-1197426',
+        label: '2600983, 1197426 (search_coordinate_lv95)',
+        x: 2600983,
+        y: 1197426,
+      })
+      expect(store.searchResults[0].lat).toBeCloseTo(46.92792853, 4)
+      expect(store.searchResults[0].lon).toBeCloseTo(7.45154007, 4)
+      expect(store.isSearchResultLoading).toBe(false)
+    })
+
+    it('resolves wgs84 coordinate queries even when no search service is configured', async () => {
+      const store = useMapStore()
+      const fetchMock = vi.fn()
+      vi.stubGlobal('fetch', fetchMock)
+
+      await store.updateSearchQuery('46.94304142827599, 7.440462684216267')
+
+      expect(fetchMock).not.toHaveBeenCalled()
+      expect(store.searchResults).toHaveLength(1)
+      expect(store.searchResults[0].label).toContain('search_coordinate_wgs84')
     })
 
     it('ignores empty queries', async () => {

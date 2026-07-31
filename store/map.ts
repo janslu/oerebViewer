@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { convertToSwissCoordinates } from '~/helpers/coordinates'
+import { useI18n } from 'vue-i18n'
+import { convertToSwissCoordinates, parseCoordinateQuery } from '~/helpers/coordinates'
+import type { CoordinateQueryResult } from '~/helpers/coordinates'
 import { usePropertyStore } from '~/store/property'
 import { useNotificationStore } from '~/store/notification'
 import { getView, getSearchService } from '~/config/setup'
@@ -56,6 +58,8 @@ export const useMapStore = defineStore('map', () => {
   const searchService = ref<ConfigObject | null>(null)
   const minZoom = ref<number>(0)
   const maxZoom = ref<number>(42)
+
+  const i18n = useI18n()
 
   async function initializeStore() {
     const viewConfig = await getView()
@@ -185,8 +189,29 @@ export const useMapStore = defineStore('map', () => {
     }
   }
 
+  function coordinateToSearchResult(coordinate: CoordinateQueryResult, query: string): SearchResult {
+    return {
+      id: `coordinate-${Math.round(coordinate.x)}-${Math.round(coordinate.y)}`,
+      label: `${query.trim()} (${i18n.t(`search_coordinate_${coordinate.type}`)})`,
+      lat: coordinate.lat,
+      lon: coordinate.lon,
+      x: coordinate.x,
+      y: coordinate.y,
+    }
+  }
+
   async function updateSearchQuery(newSearchQuery: string) {
     if (!newSearchQuery || newSearchQuery === '') {
+      return
+    }
+
+    // coordinate pairs (WGS84, LV95, LV03) are resolved locally
+    // instead of being sent to the search service
+    const coordinate = parseCoordinateQuery(newSearchQuery)
+    if (coordinate) {
+      setSearchQuery(newSearchQuery)
+      setSearchResults([coordinateToSearchResult(coordinate, newSearchQuery)])
+      markSearchResultIsCompleted()
       return
     }
 
