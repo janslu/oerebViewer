@@ -31,6 +31,12 @@ describe('notification store', () => {
     })
   })
 
+  it('rejects invalid notification options', () => {
+    const store = useNotificationStore()
+
+    expect(() => store.notifyError(42 as never)).toThrow('Invalid notification options')
+  })
+
   it('takes messages in fifo order', () => {
     const store = useNotificationStore()
     store.notifySuccess('first')

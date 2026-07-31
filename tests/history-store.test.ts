@@ -55,6 +55,16 @@ describe('history store', () => {
     expect(store.properties[0].EGRID).toBe('CH11')
   })
 
+  it('recovers when the persisted state is not an array', () => {
+    const store = useHistoryStore()
+    store.properties = 'corrupted' as never
+
+    store.addProperty(makeExtract('CH1'), 'de')
+
+    expect(store.properties).toHaveLength(1)
+    expect(store.properties[0].EGRID).toBe('CH1')
+  })
+
   it('ignores extracts without real estate data', () => {
     const store = useHistoryStore()
     store.addProperty({} as Extract, 'de')

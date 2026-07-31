@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ref } from 'vue'
 import { setActivePinia, createPinia } from 'pinia'
 
@@ -34,6 +34,12 @@ vi.mock('~/config/setup', () => ({
 
 vi.mock('~/composables/useOereb', () => ({
   useOereb: () => ({ getEGRID }),
+}))
+
+const fetchEsriToken = vi.hoisted(() => vi.fn())
+
+vi.mock('~/services/esritoken', () => ({
+  fetchEsriToken,
 }))
 
 const { useMapStore } = await import('~/store/map')
@@ -228,6 +234,165 @@ describe('map store', () => {
 
       expect(store.previewEGRID).toHaveLength(2)
       expect(store.previewFeatures).toEqual({ type: 'MultiPolygon' })
+    })
+
+    it('warns and clears the preview when the egrid lookup fails', async () => {
+      const store = useMapStore()
+      getEGRID.mockRejectedValue(
+        Object.assign(new Error('server error'), { response: { status: 500 } }),
+      )
+
+      await store.setPreviewCoordinate({
+        globalCoordinate: { longitude: 7.44, latitude: 46.94 },
+        swissCoordinate: { longitude: 2600983, latitude: 1197426 },
+      })
+
+      expect(store.previewCoordinates).toBeNull()
+      expect(store.previewEGRID).toBeNull()
+
+      const { useNotificationStore } = await import('~/store/notification')
+      const messages = useNotificationStore().messages
+      expect(messages[messages.length - 1]).toMatchObject({
+        type: 'warning',
+        text: 'oereb_service_500',
+      })
+    })
+
+    it('maps 204 lookup failures to the dedicated warning', async () => {
+      const store = useMapStore()
+      getEGRID.mockRejectedValue(
+        Object.assign(new Error('no content'), { response: { status: 204 } }),
+      )
+
+      await store.setPreviewCoordinate({
+        globalCoordinate: { longitude: 7.44, latitude: 46.94 },
+        swissCoordinate: { longitude: 2600983, latitude: 1197426 },
+      })
+
+      const { useNotificationStore } = await import('~/store/notification')
+      const messages = useNotificationStore().messages
+      expect(messages[messages.length - 1]).toMatchObject({ text: 'oereb_service_204' })
+    })
+
+    it('only clears the selection when null is selected', async () => {
+      const store = useMapStore()
+      store.setJumpToCoordinates([1, 2])
+
+      await store.searchResultSelected(null as never)
+
+      expect(store.selectedSearchResult).toBeNull()
+      expect(store.jumpToCoordinates).toEqual([1, 2])
+      expect(getEGRID).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('view type and jumps', () => {
+    it('switches between map and satellite view', () => {
+      const store = useMapStore()
+
+      expect(store.isMapView).toBe(true)
+      store.setSatelliteView()
+      expect(store.isSatelliteView).toBe(true)
+      expect(store.isMapView).toBe(false)
+      store.setMapView()
+      expect(store.isMapView).toBe(true)
+    })
+
+    it('jumps to swiss coordinates directly', () => {
+      const store = useMapStore()
+
+      store.jumpToSwissCoordinates([2600000, 1200000])
+
+      expect(store.jumpToCoordinates).toEqual([2600000, 1200000])
+    })
+
+    it('delegates center object clicks to the property store refocus', async () => {
+      const store = useMapStore()
+      const { usePropertyStore } = await import('~/store/property')
+      const propertyStore = usePropertyStore()
+      const refocus = vi.spyOn(propertyStore, 'refocusFeatures')
+
+      store.centerObjectActionClicked()
+
+      expect(refocus).toHaveBeenCalled()
+    })
+  })
+
+  describe('side panel and search visibility', () => {
+    it('toggles the glossary panel', () => {
+      const store = useMapStore()
+
+      store.toggleGlossaryVisibility()
+      expect(store.contentType).toBe('glossary')
+      store.toggleGlossaryVisibility()
+      expect(store.contentType).toBe('map')
+    })
+
+    it('toggles the imprint panel and closes back to the map', () => {
+      const store = useMapStore()
+
+      store.toggleImprintAndLegalVisibility()
+      expect(store.contentType).toBe('imprintAndLegal')
+      store.closeImprintAndLegal()
+      expect(store.contentType).toBe('map')
+
+      store.toggleGlossaryVisibility()
+      store.closeGlossary()
+      expect(store.contentType).toBe('map')
+    })
+
+    it('shows, hides and toggles the search control', () => {
+      const store = useMapStore()
+
+      store.hideSearch()
+      expect(store.isSearchVisible).toBe(false)
+      store.showSearch()
+      expect(store.isSearchVisible).toBe(true)
+      store.toggleSearchVisibility()
+      expect(store.isSearchVisible).toBe(false)
+    })
+  })
+
+  describe('esri token updater', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('fetches a token immediately and refreshes it once expired', async () => {
+      const store = useMapStore()
+      fetchEsriToken.mockResolvedValue({ token: 'first', expires: Date.now() + 60_000 })
+
+      await store.enableTokenUpdater()
+      expect(store.esriToken).toBe('first')
+      expect(fetchEsriToken).toHaveBeenCalledTimes(1)
+
+      // token still valid - interval tick must not refetch
+      await vi.advanceTimersByTimeAsync(30_000)
+      expect(fetchEsriToken).toHaveBeenCalledTimes(1)
+
+      // token expired - next tick refreshes
+      fetchEsriToken.mockResolvedValue({ token: 'second', expires: Date.now() + 120_000 })
+      await vi.advanceTimersByTimeAsync(31_000)
+      expect(fetchEsriToken).toHaveBeenCalledTimes(2)
+      expect(store.esriToken).toBe('second')
+
+      store.disableTokenUpdater()
+      await vi.advanceTimersByTimeAsync(120_000)
+      expect(fetchEsriToken).toHaveBeenCalledTimes(2)
+    })
+
+    it('updates the token on demand', async () => {
+      const store = useMapStore()
+      fetchEsriToken.mockResolvedValue({ token: 'manual', expires: 42 })
+
+      await store.updateToken()
+
+      expect(store.esriToken).toBe('manual')
+      expect(store.esriTokenExpiredAt).toBe(42)
     })
   })
 })

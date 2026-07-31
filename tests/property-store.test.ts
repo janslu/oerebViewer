@@ -17,12 +17,22 @@ vi.mock('~/composables/useOereb', () => ({
   useOereb: () => ({ getExtractById }),
 }))
 
+const services = vi.hoisted(() => ({
+  pdf: {} as Record<string, unknown>,
+  external: {} as Record<string, unknown>,
+  owner: {} as Record<string, unknown>,
+  reset() {
+    this.pdf = { getPDFUrlByEGRID: 'https://pdf.example/extract?egrid={{EGRID}}&lang={{language}}' }
+    this.external = {}
+    this.owner = {}
+  },
+}))
+services.reset()
+
 vi.mock('~/config/setup', () => ({
-  getPdfService: async () => ({
-    getPDFUrlByEGRID: 'https://pdf.example/extract?egrid={{EGRID}}&lang={{language}}',
-  }),
-  getExternalService: async () => ({}),
-  getOwnerService: async () => ({}),
+  getPdfService: async () => services.pdf,
+  getExternalService: async () => services.external,
+  getOwnerService: async () => services.owner,
 }))
 
 const { usePropertyStore } = await import('~/store/property')
@@ -53,6 +63,7 @@ describe('property store, loading extracts', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     vi.clearAllMocks()
+    services.reset()
   })
 
   it('loads an extract, renders service urls and notifies success', async () => {
@@ -136,6 +147,114 @@ describe('property store, loading extracts', () => {
 
     expect(routerPush).toHaveBeenCalledWith('/d/CH1')
   })
+
+  it('detects temporary parcels from the egrid pattern alone', async () => {
+    const store = usePropertyStore()
+    getExtractById.mockRejectedValue(
+      Object.assign(new Error('204 No Content'), { response: { status: 204 } }),
+    )
+
+    await store.loadExtractByIdAndLanguage({ EGRID: 'BE0012TEMP123-1-0', language: 'de' })
+
+    expect(lastMessage()).toMatchObject({ type: 'warning', text: 'oereb_service_204_temp' })
+  })
+
+  it('renders external and owner service urls when configured', async () => {
+    services.external = {
+      getExternalUrlByEGRID: 'https://geo.example/call?egrid={{EGRID}}&project=x_{{languageUppercase}}',
+    }
+    services.owner = {
+      getOwnerUrlByEGRID: 'https://owner.example/?bfs={{municipalityCode}}&nr={{number}}',
+    }
+    const store = usePropertyStore()
+    await store.initializeStore()
+    getExtractById.mockResolvedValue({
+      extract: makeExtract({
+        RealEstate: {
+          EGRID: 'CH951946873506',
+          Number: '2711',
+          MunicipalityCode: '351',
+          RestrictionOnLandownership: [],
+        },
+      }),
+    })
+
+    await store.loadExtractByIdAndLanguage({ EGRID: 'CH951946873506', language: 'de' })
+
+    expect(store.extract?.externalUrl).toBe(
+      'https://geo.example/call?egrid=CH951946873506&project=x_DE',
+    )
+    expect(store.extract?.ownerUrl).toBe('https://owner.example/?bfs=351&nr=2711')
+  })
+
+  it('reloads the current extract in another language', async () => {
+    const store = usePropertyStore()
+    getExtractById.mockResolvedValue({ extract: makeExtract() })
+    await store.loadExtractByIdAndLanguage({ EGRID: 'CH951946873506', language: 'de' })
+
+    await store.reloadExtract('fr')
+
+    expect(getExtractById).toHaveBeenLastCalledWith({ EGRID: 'CH951946873506', language: 'fr' })
+  })
+
+  it('does nothing on reload when no extract is loaded', async () => {
+    const store = usePropertyStore()
+
+    await store.reloadExtract('fr')
+
+    expect(getExtractById).not.toHaveBeenCalled()
+  })
+
+  it('starts an extraction for hash paths in the /d/EGRID format', async () => {
+    const store = usePropertyStore()
+    getExtractById.mockResolvedValue({ extract: makeExtract() })
+
+    await store.showActiveExtract('/fr/d/CH951946873506')
+
+    expect(getExtractById).toHaveBeenCalledWith({ EGRID: 'CH951946873506', language: 'de' })
+  })
+
+  it('ignores hash paths without an egrid', async () => {
+    const store = usePropertyStore()
+
+    await store.showActiveExtract('/fr')
+
+    expect(getExtractById).not.toHaveBeenCalled()
+  })
+
+  it('exposes the extract only when loading is finished', async () => {
+    const store = usePropertyStore()
+    let resolveFetch: (value: unknown) => void
+    getExtractById.mockReturnValue(new Promise((resolve) => {
+      resolveFetch = resolve
+    }))
+
+    const loading = store.loadExtractByIdAndLanguage({ EGRID: 'CH951946873506', language: 'de' })
+    expect(store.loadedExtract).toBeNull()
+
+    resolveFetch!({ extract: makeExtract() })
+    await loading
+
+    expect(store.loadedExtract?.RealEstate.EGRID).toBe('CH951946873506')
+  })
+
+  it('restores the plot features after a refocus', async () => {
+    vi.useFakeTimers()
+    try {
+      const store = usePropertyStore()
+      getExtractById.mockResolvedValue({ extract: makeExtract() })
+      await store.loadExtractByIdAndLanguage({ EGRID: 'CH951946873506', language: 'de' })
+      const features = store.extractFeatures
+
+      store.refocusFeatures()
+      expect(store.extractFeatures).toBeNull()
+
+      vi.advanceTimersByTime(100)
+      expect(store.extractFeatures).toEqual(features)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 describe('property store, restriction selectors', () => {
@@ -205,5 +324,28 @@ describe('property store, restriction selectors', () => {
     const states = store.lawStatesByThemeCode('ch.Nutzungsplanung')
 
     expect(states?.map(s => s.Code)).toEqual(['inKraft', 'AenderungMitVorwirkung'])
+  })
+
+  it('collects unique sub themes for a main theme code', async () => {
+    const store = await storeWithRestrictions([
+      restriction({ Theme: { Code: 'ch.Main', SubCode: 'ch.Main.A' } }),
+      restriction({ Theme: { Code: 'ch.Main', SubCode: 'ch.Main.A' }, TypeCode: 'N120' }),
+      restriction({ Theme: { Code: 'ch.Main', SubCode: 'ch.Main.B' } }),
+      restriction({ Theme: { Code: 'ch.Other', SubCode: 'ch.Other.C' } }),
+      restriction(),
+    ])
+
+    const subThemes = await store.getSubThemesByCode('ch.Main')
+
+    expect(subThemes?.map(t => t.SubCode)).toEqual(['ch.Main.A', 'ch.Main.B'])
+  })
+
+  it('exposes the loaded extract through the useLoadedExtract composable', async () => {
+    const store = await storeWithRestrictions([])
+    const { useLoadedExtract } = await import('~/composables/useLoadedExtract')
+
+    const { loadedExtract } = useLoadedExtract()
+
+    expect(loadedExtract.value).toBe(store.extract)
   })
 })

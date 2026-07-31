@@ -1,7 +1,7 @@
 {
   "name": "oereb-viewer",
   "version": "3.0.0",
-  "description": "Source code to setup a viewer for the Cadastre of Public-law Restrictions on landownership (DE: ÖREB-Kataster) displaying the JSON-Extract of the PLR-cadastre.",
+  "description": "Source code to setup a viewer for the Cadastre of Public-law Restrictions on landownership (DE: \u00d6REB-Kataster) displaying the JSON-Extract of the PLR-cadastre.",
   "engines": {
     "node": ">=20.19.0"
   },
@@ -15,7 +15,9 @@
     "lint:fix": "eslint --fix",
     "test": "vitest run",
     "test:watch": "vitest",
-    "json2ts": "json2ts -i 'schemas/**/*.json' -o types/"
+    "json2ts": "json2ts -i 'schemas/**/*.json' -o types/",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test"
   },
   "author": "kanton-bern",
   "license": "MIT",
@@ -35,8 +37,11 @@
     "@nuxt/eslint": "^1.16.0",
     "@nuxtjs/i18n": "^10.6.0",
     "@pinia/nuxt": "^1.0.1",
+    "@playwright/test": "^1.62.1",
     "@stylistic/eslint-plugin": "^5.10.0",
     "@tailwindcss/vite": "^4.3.3",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vue/test-utils": "^2.4.11",
     "eslint": "^10.8.0",
     "happy-dom": "^20.11.1",
     "json-schema-to-typescript": "^15.0.2",

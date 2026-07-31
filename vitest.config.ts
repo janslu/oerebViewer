@@ -15,5 +15,14 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['./tests/setup.ts'],
     include: ['tests/**/*.test.ts'],
+    coverage: {
+      include: [
+        'store/**',
+        'helpers/**',
+        'composables/**',
+        'services/**',
+        'config/setup.ts',
+      ],
+    },
   },
 })
