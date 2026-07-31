@@ -16,7 +16,7 @@ interface LayerConfig {
   capabilityMatrixSet?: string
 }
 
-const mergeConfigs = (defaultObj: ConfigObject, customObj?: ConfigObject): ConfigObject => {
+export const mergeConfigs = (defaultObj: ConfigObject, customObj?: ConfigObject): ConfigObject => {
   if (!customObj) return defaultObj
 
   return Object.keys(defaultObj).reduce<ConfigObject>((acc, key) => {
