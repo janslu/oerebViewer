@@ -17,7 +17,8 @@
     "test:watch": "vitest",
     "json2ts": "json2ts -i 'schemas/**/*.json' -o types/",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "postinstall": "nuxi prepare"
   },
   "author": "kanton-bern",
   "license": "MIT",
@@ -50,6 +51,7 @@
     "pinia-plugin-persistedstate": "^4.7.1",
     "postcss": "^8.4.13",
     "prettier": "^3.3.3",
+    "serve": "^14.2.6",
     "tailwindcss": "^4.3.3",
     "vitest": "^4.1.10",
     "vue": "^3.5.8",
