@@ -1,4 +1,4 @@
-name: ci
+name: Lint, unit tests, builds and e2e
 
 on:
   push:
@@ -6,14 +6,15 @@ on:
   pull_request:
 
 jobs:
-  ci:
+  lint-test-build-e2e:
+    name: Lint, unit tests, context builds, e2e smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: npm
 
       - run: npm ci
