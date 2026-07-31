@@ -232,6 +232,10 @@ export const useMapStore = defineStore('map', () => {
       const response = await fetch(endpoint)
       const data = await response.json()
 
+      // a newer query (e.g. an instantly resolved coordinate pair) may have
+      // been submitted while this request was in flight - drop stale results
+      if (searchQuery.value !== newSearchQuery) return
+
       if (typeof searchService.value?.parser !== 'function')
         throw new Error(
           'searchService.parse is not a function. provide a function to parse the response as search result.',
@@ -242,6 +246,8 @@ export const useMapStore = defineStore('map', () => {
       setSearchResults(results)
       markSearchResultIsCompleted()
     } catch (err) {
+      if (searchQuery.value !== newSearchQuery) return
+
       setSearchResults([])
       markSearchResultIsCompleted()
       throw err
@@ -316,11 +322,9 @@ export const useMapStore = defineStore('map', () => {
     clearPreview()
     previewCoordinates.value = swissCoordinate
 
-    let EGRIDs: EGRIDResponse[] = []
-
     try {
       const response = await getEGRID(globalCoordinate)
-      EGRIDs = Array.isArray(response) ? response : []
+      const EGRIDs: EGRIDResponse[] = Array.isArray(response) ? response : []
 
       setPreviewEGRID(EGRIDs)
       setPreviewFeatures(EGRIDs[0]?.limit ?? null)

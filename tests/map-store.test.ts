@@ -134,6 +134,33 @@ describe('map store', () => {
       expect(store.searchResults[0].label).toContain('search_coordinate_wgs84')
     })
 
+    it('drops stale service responses that resolve after a newer coordinate query', async () => {
+      const store = useMapStore()
+      await store.initializeStore()
+
+      let resolveSlowFetch: (value: unknown) => void
+      vi.stubGlobal('fetch', vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolveSlowFetch = resolve
+        }),
+      ))
+
+      // a slow text query is in flight when the finished coordinate pair arrives
+      const slowQuery = store.updateSearchQuery('2600983')
+      await store.updateSearchQuery('2600983, 1197426')
+      expect(store.searchResults[0].id).toBe('coordinate-2600983-1197426')
+
+      resolveSlowFetch!({
+        json: async () => [
+          { id: 1, label: 'stale', lat: 46, lon: 7, x: 2600000, y: 1199000 },
+        ],
+      })
+      await slowQuery
+
+      expect(store.searchResults).toHaveLength(1)
+      expect(store.searchResults[0].id).toBe('coordinate-2600983-1197426')
+    })
+
     it('ignores empty queries', async () => {
       const store = useMapStore()
       await store.initializeStore()
