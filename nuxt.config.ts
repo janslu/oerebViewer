@@ -83,14 +83,9 @@ export default defineNuxtConfig({
 
   // i18n configuration: https://i18n.nuxtjs.org/options-reference
   i18n: {
-    lazy: true,
-    // Disable the new directory structure to maintain compatibility with your custom setup
-    restructureDir: false,
-    langDir: 'locales',
     locales: getLocales(configContext),
     defaultLocale: 'de',
     strategy: 'prefix_except_default',
-    vueI18n: './i18n.config.ts',
   },
 
   logLevel: 'verbose',
