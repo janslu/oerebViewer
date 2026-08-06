@@ -48,8 +48,10 @@ export const zoom = {
 
 export const searchService = {
   // template url for searching properties - placeholder {{query}}
+  // origins filter keeps municipalities, local names (incl. mountain huts),
+  // addresses and parcels while dropping public transport stops
   search:
-    'https://api3.geo.admin.ch/rest/services/api/SearchServer?searchText={{query}}&type=locations',
+    'https://api3.geo.admin.ch/rest/services/api/SearchServer?searchText={{query}}&type=locations&origins=zipcode,gg25,gazetteer,address,parcel',
 
   // function for parsing search results from json response
   // as a result provide an object with the following properties:
@@ -60,17 +62,24 @@ export const searchService = {
   //  - lon: number / longitude
   //  - x: number / x coordinate in swiss coordinates
   //  - y: number / y coordinate in swiss coordinates
-  parser: (response) => [
-    ...response.results.map((item) => ({
-      id: item.id || `${item.x}-${item.y}`,
-      bbox: item.attrs.geom_st_box2d,
-      label: item.attrs.label,
-      lat: item.attrs.lat,
-      lon: item.attrs.lon,
-      x: item.attrs.x,
-      y: item.attrs.y,
-    })),
-  ],
+  parser: (response) => {
+    // the service returns some entries twice (differing only in markup,
+    // stray whitespace or by a few meters, e.g. both motorway carriageways)
+    const dedupeKey = (r) =>
+      r.label.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim()
+
+    return response.results
+      .map((item) => ({
+        id: item.id || `${item.x}-${item.y}`,
+        bbox: item.attrs.geom_st_box2d,
+        label: item.attrs.label,
+        lat: item.attrs.lat,
+        lon: item.attrs.lon,
+        x: item.attrs.x,
+        y: item.attrs.y,
+      }))
+      .filter((v, i, a) => a.findIndex((r) => dedupeKey(r) === dedupeKey(v)) === i)
+  },
 
   // search labels are formatted with html
   isHtmlFormatted: true,

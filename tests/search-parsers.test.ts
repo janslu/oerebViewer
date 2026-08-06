@@ -66,4 +66,27 @@ describe('graubuenden search parser', () => {
   it('marks results as html formatted', () => {
     expect(graubuendenSearchService.isHtmlFormatted).toBe(true)
   })
+
+  it('drops entries with the same visible label', () => {
+    const attrs = { lat: 46.8, lon: 9.5, x: 1, y: 2 }
+    const response = {
+      results: [
+        { id: 1, attrs: { ...attrs, label: '<b>Chur (GR)</b>' } },
+        { id: 2, attrs: { ...attrs, label: '<b>Chur (GR)</b>' } },
+        { id: 3, attrs: { ...attrs, label: '<b>Chur\n</b> (GR)' } },
+        // same visible label a few meters apart, e.g. both motorway carriageways
+        { id: 4, attrs: { ...attrs, label: '<b>Chur (GR)</b>', x: 9 } },
+        { id: 5, attrs: { ...attrs, label: '<b>Churwalden (GR)</b>' } },
+      ],
+    }
+
+    const results = graubuendenSearchService.parser(response)
+
+    expect(results.map((r: { id: number }) => r.id)).toEqual([1, 5])
+  })
+
+  it('filters public transport stops out via the search url', () => {
+    expect(graubuendenSearchService.search).toContain('origins=')
+    expect(graubuendenSearchService.search).not.toContain('haltestellen')
+  })
 })
