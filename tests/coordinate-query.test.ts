@@ -56,6 +56,37 @@ describe('parseCoordinateQuery', () => {
     })
   })
 
+  describe('locale tolerant input', () => {
+    it('ignores a trailing separator', () => {
+      const result = parseCoordinateQuery('9.693888889 46.9066667,')
+
+      expect(result?.type).toBe('wgs84')
+      expect(result?.lat).toBe(46.9066667)
+      expect(result?.lon).toBe(9.693888889)
+    })
+
+    it('accepts comma decimals from german locale tools', () => {
+      const result = parseCoordinateQuery('46,9066667 9,693888889')
+
+      expect(result?.type).toBe('wgs84')
+      expect(result?.lat).toBe(46.9066667)
+      expect(result?.lon).toBe(9.693888889)
+    })
+
+    it('accepts comma decimals on lv95 pairs', () => {
+      const result = parseCoordinateQuery('2600983,5 1197426')
+
+      expect(result?.type).toBe('lv95')
+      expect(result?.x).toBe(2600983.5)
+      expect(result?.y).toBe(1197426)
+    })
+
+    it('still rejects ambiguous multi comma input', () => {
+      expect(parseCoordinateQuery('46,94, 7,44')).toBeNull()
+      expect(parseCoordinateQuery('Chur, GR')).toBeNull()
+    })
+  })
+
   describe('lv03', () => {
     it('parses x,y pairs and resolves them near the equivalent lv95 point', () => {
       const result = parseCoordinateQuery('600983 197426')
