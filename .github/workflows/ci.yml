@@ -1,0 +1,53 @@
+name: Lint, unit tests, builds and e2e
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  lint-test-build-e2e:
+    name: Lint, unit tests, context builds, e2e smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run test
+
+      - name: Build defaults context
+        run: npm run generate
+        env:
+          NUXT_ENV_CONFIG_CONTEXT: defaults
+
+      - name: Build graubuenden context
+        run: npm run generate
+        env:
+          NUXT_ENV_CONFIG_CONTEXT: graubuenden
+
+      # built last so the e2e tests below run against the bern build
+      - name: Build bern context
+        run: npm run generate
+        env:
+          NUXT_ENV_CONFIG_CONTEXT: bern
+
+      - name: Install playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end smoke tests
+        run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

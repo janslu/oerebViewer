@@ -15,9 +15,6 @@ const propertyStore = usePropertyStore()
 const mapStore = useMapStore()
 const appStore = useAppStore()
 
-definePageMeta({
-})
-
 onMounted(async () => {
   await Promise.all([
     propertyStore.initializeStore(),

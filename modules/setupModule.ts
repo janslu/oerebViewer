@@ -1,7 +1,12 @@
-import { defineNuxtModule, useLogger } from '@nuxt/kit'
+import { defineNuxtModule, addTemplate, useLogger } from '@nuxt/kit'
 import fs from 'fs'
 import path from 'path'
 
+/**
+ * Provides the theme css of the active config context as a build
+ * template (#build/setup-context.css), falling back to the default
+ * theme. The source files in config/ are never modified.
+ */
 export default defineNuxtModule({
   meta: {
     name: 'setup',
@@ -9,29 +14,25 @@ export default defineNuxtModule({
   },
   setup(options, nuxt) {
     const logger = useLogger('setupModule')
-    const CONFIG_CONTEXT = process.env.NUXT_ENV_CONFIG_CONTEXT || ''
+    const CONFIG_CONTEXT = process.env.NUXT_ENV_CONFIG_CONTEXT || 'defaults'
 
-    // Log the config context
     logger.info(`Loaded Config: ${CONFIG_CONTEXT}`)
 
-    // Use Nuxt 3 hooks
-    nuxt.hook('builder:generateApp', () => {
-      // copy config file to default location
-      let styles = ''
-      const styleFile = path.resolve(
-        process.cwd(),
-        'config',
-        CONFIG_CONTEXT,
-        'setup.css',
-      )
-      if (fs.existsSync(styleFile)) {
-        logger.success('found setup.css')
-        styles = fs.readFileSync(styleFile, 'utf-8')
-      }
-      fs.writeFileSync(
-        path.resolve(process.cwd(), 'config/defaults/setup.css'),
-        styles,
-      )
+    addTemplate({
+      filename: 'setup-context.css',
+      write: true,
+      getContents: () => {
+        const contextFile = path.resolve(nuxt.options.rootDir, 'config', CONFIG_CONTEXT, 'setup.css')
+        const defaultFile = path.resolve(nuxt.options.rootDir, 'config', 'defaults', 'setup.css')
+
+        if (fs.existsSync(contextFile)) {
+          logger.success(`found setup.css for context ${CONFIG_CONTEXT}`)
+          return fs.readFileSync(contextFile, 'utf-8')
+        }
+
+        logger.info(`no setup.css for context ${CONFIG_CONTEXT}, using defaults`)
+        return fs.readFileSync(defaultFile, 'utf-8')
+      },
     })
   },
 })

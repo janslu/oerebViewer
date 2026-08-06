@@ -1,3 +1,6 @@
 {
-  "external_instructions": "Direcziun al portal"
+  "external_instructions": "Direcziun al portal",
+  "search_coordinate_wgs84": "Coordinata WGS84",
+  "search_coordinate_lv95": "Coordinata naziunala LV95",
+  "search_coordinate_lv03": "Coordinata naziunala LV03"
 }

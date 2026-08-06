@@ -62,5 +62,8 @@
   "amount":"IT Anzahl",
   "show_changes":"IT Zwichen Rechtskräfitg und Änderungen wechseln",
   "detail_updated_date":"IT Stand der amtlichen Vermessung",
-  "external_instructions":"IT Anleitung zum Portal"
+  "external_instructions":"IT Anleitung zum Portal",
+  "search_coordinate_wgs84":"Coordinata WGS84",
+  "search_coordinate_lv95":"Coordinata nazionale MN95",
+  "search_coordinate_lv03":"Coordinata nazionale MN03"
 }

@@ -19,14 +19,13 @@ export async function fetchEsriToken(): Promise<EsriTokenResponse> {
   formData.append('expiration', `${Math.min(settings.intervalMinutes, 60)}`)
   formData.append('f', 'json')
 
-  const response = await $fetch(settings.endpoint, {
+  const token = await $fetch(settings.endpoint, {
     method: 'POST',
     body: formData.toString(),
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
     },
-  })
-  const token = await response.json()
+  }) as (EsriTokenResponse & { error?: { message: string } }) | null
 
   if (!token) {
     throw new Error('Expected token as response')

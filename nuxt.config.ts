@@ -1,5 +1,6 @@
 import { defineNuxtConfig } from 'nuxt/config'
-import getLocales, { preloadContext } from './config/locales'
+import tailwindcss from '@tailwindcss/vite'
+import getLocales from './config/locales'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
 
@@ -7,8 +8,7 @@ const configContext = process.env.NUXT_ENV_CONFIG_CONTEXT || 'defaults'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-// Preload the context to make it available synchronously
-preloadContext(configContext)
+const locales = await getLocales(configContext)
 
 export default defineNuxtConfig({
   // disable server side rendering: https://nuxtjs.org/docs/2.x/configuration-glossary/configuration-ssr
@@ -59,7 +59,6 @@ export default defineNuxtConfig({
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    '~/plugins/i18nLoader.ts',
     '~/plugins/vueToastification.ts',
   ],
 
@@ -71,8 +70,6 @@ export default defineNuxtConfig({
     '@nuxt/devtools',
     // https://go.nuxtjs.dev/eslint
     '@nuxt/eslint',
-    // https://go.nuxtjs.dev/tailwindcss
-    '@nuxtjs/tailwindcss',
     // https://pinia.vuejs.org/cookbook/plugins.html
     '@pinia/nuxt',
     'pinia-plugin-persistedstate/nuxt',
@@ -81,19 +78,19 @@ export default defineNuxtConfig({
     '~/modules/setupModule',
   ],
 
+  // https://tailwindcss.com/docs/installation/framework-guides
+  vite: {
+    plugins: [tailwindcss()],
+  },
+
   // i18n configuration: https://i18n.nuxtjs.org/options-reference
   i18n: {
-    lazy: true,
-    // Disable the new directory structure to maintain compatibility with your custom setup
-    restructureDir: false,
-    langDir: 'locales',
-    locales: getLocales(configContext),
+    locales,
     defaultLocale: 'de',
     strategy: 'prefix_except_default',
-    vueI18n: './i18n.config.ts',
   },
 
   logLevel: 'verbose',
 
-  compatibilityDate: '2024-09-26',
+  compatibilityDate: '2026-07-31',
 })
