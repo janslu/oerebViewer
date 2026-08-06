@@ -45,14 +45,29 @@ const inRange = (value: number, [min, max]: number[]): boolean =>
 export function parseCoordinateQuery(query: string): CoordinateQueryResult | null {
   if (typeof query !== 'string') return null
 
-  const tokens = query
-    .trim()
-    .replace(/[’']/g, '')
-    .split(/[\s,;]+/)
-  if (tokens.length !== 2) return null
+  const cleaned = query.trim().replace(/[’']/g, '')
 
-  const a = Number(tokens[0])
-  const b = Number(tokens[1])
+  // dot decimals - comma, semicolon and whitespace separate the pair
+  const tokens = cleaned.split(/[\s,;]+/).filter(Boolean)
+  if (tokens.length === 2) {
+    const result = classifyPair(Number(tokens[0]), Number(tokens[1]))
+    if (result) return result
+  }
+
+  // comma decimals (german locale tools) - whitespace separates the pair
+  const commaTokens = cleaned.split(/\s+/).filter(Boolean)
+  if (
+    commaTokens.length === 2 &&
+    commaTokens.every(t => (t.match(/,/g) || []).length <= 1)
+  ) {
+    const [a, b] = commaTokens.map(t => Number(t.replace(',', '.')))
+    return classifyPair(a, b)
+  }
+
+  return null
+}
+
+function classifyPair(a: number, b: number): CoordinateQueryResult | null {
   if (!Number.isFinite(a) || !Number.isFinite(b)) return null
 
   if (inRange(a, BOUNDS.wgs84Lat) && inRange(b, BOUNDS.wgs84Lon)) return fromWgs84(b, a)
