@@ -56,6 +56,66 @@ describe('parseCoordinateQuery', () => {
     })
   })
 
+  describe('dms notation', () => {
+    // 46°56'48.74" 7°27'48.46" is the bern zytglogge area
+    const LAT = 46 + 56 / 60 + 48.74 / 3600
+    const LON = 7 + 27 / 60 + 48.46 / 3600
+
+    it('parses plain dms pairs', () => {
+      const result = parseCoordinateQuery('46°56\'48.74" 7°27\'48.46"')
+
+      expect(result?.type).toBe('wgs84')
+      expect(result?.lat).toBeCloseTo(LAT, 8)
+      expect(result?.lon).toBeCloseTo(LON, 8)
+    })
+
+    it('parses dms pairs with hemisphere letters', () => {
+      const result = parseCoordinateQuery('46°56\'48.74"N 7°27\'48.46"E')
+
+      expect(result?.type).toBe('wgs84')
+      expect(result?.lat).toBeCloseTo(LAT, 8)
+      expect(result?.lon).toBeCloseTo(LON, 8)
+    })
+
+    it('respects hemisphere letters over input order', () => {
+      const result = parseCoordinateQuery('7°27\'48.46"E 46°56\'48.74"N')
+
+      expect(result?.lat).toBeCloseTo(LAT, 8)
+      expect(result?.lon).toBeCloseTo(LON, 8)
+    })
+
+    it('accepts the german east letter and comma decimals', () => {
+      const result = parseCoordinateQuery('46°56\'48,74"N 7°27\'48,46"O')
+
+      expect(result?.lat).toBeCloseTo(LAT, 8)
+      expect(result?.lon).toBeCloseTo(LON, 8)
+    })
+
+    it('accepts unicode degree minute second marks', () => {
+      const result = parseCoordinateQuery('46°56′48.74″ 7°27′48.46″')
+
+      expect(result?.lat).toBeCloseTo(LAT, 8)
+    })
+
+    it('accepts degrees with decimal minutes only', () => {
+      const result = parseCoordinateQuery("46°56.8123' 7°27.8077'")
+
+      expect(result?.type).toBe('wgs84')
+      expect(result?.lat).toBeCloseTo(46 + 56.8123 / 60, 8)
+    })
+
+    it.each([
+      ['minutes over 59', '46°79\'48.74" 7°27\'48.46"'],
+      ['seconds over 59', '46°56\'88.74" 7°27\'48.46"'],
+      ['southern hemisphere', '46°56\'48.74"S 7°27\'48.46"E'],
+      ['conflicting hemisphere letters', '46°56\'48.74"N 47°27\'48.46"N'],
+      ['a single dms group', '46°56\'48.74"'],
+      ['degrees outside switzerland', '52°31\'12.0" 13°24\'36.0"'],
+    ])('rejects %s', (_name, query) => {
+      expect(parseCoordinateQuery(query)).toBeNull()
+    })
+  })
+
   describe('locale tolerant input', () => {
     it('ignores a trailing separator', () => {
       const result = parseCoordinateQuery('9.693888889 46.9066667,')

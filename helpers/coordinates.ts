@@ -45,7 +45,14 @@ const inRange = (value: number, [min, max]: number[]): boolean =>
 export function parseCoordinateQuery(query: string): CoordinateQueryResult | null {
   if (typeof query !== 'string') return null
 
-  const cleaned = query.trim().replace(/[’']/g, '')
+  const trimmed = query.trim()
+
+  // degree-minute-second notation, e.g. 46°56'48.74"N 7°27'48.46"E -
+  // must run before the apostrophe stripping below, since the
+  // apostrophe is the minutes mark
+  if (trimmed.includes('°')) return parseDmsQuery(trimmed)
+
+  const cleaned = trimmed.replace(/[’']/g, '')
 
   // dot decimals - comma, semicolon and whitespace separate the pair
   const tokens = cleaned.split(/[\s,;]+/).filter(Boolean)
@@ -65,6 +72,58 @@ export function parseCoordinateQuery(query: string): CoordinateQueryResult | nul
   }
 
   return null
+}
+
+// degrees, minutes and optional decimal seconds with their unicode or
+// ascii marks, optionally followed by a hemisphere letter (O = german east)
+const DMS_GROUP
+  = /(\d{1,3})\s*°\s*(\d{1,2}(?:[.,]\d+)?)\s*[’'′]\s*(?:(\d{1,2}(?:[.,]\d+)?)\s*(?:[”"″]|[’'′]{2})\s*)?([NSEWO])?/
+
+const DMS_PAIR = new RegExp(
+  `^${DMS_GROUP.source}(?:\\s*[,;]\\s*|\\s+)${DMS_GROUP.source}$`,
+  'i',
+)
+
+interface DmsPart {
+  value: number
+  axis: 'lat' | 'lon' | null
+}
+
+function parseDmsQuery(query: string): CoordinateQueryResult | null {
+  const match = query.match(DMS_PAIR)
+  if (!match) return null
+
+  const first = dmsPart(match[1], match[2], match[3], match[4])
+  const second = dmsPart(match[5], match[6], match[7], match[8])
+  if (!first || !second) return null
+
+  if (first.axis === 'lat' || second.axis === 'lon') {
+    if (second.axis === 'lat' || first.axis === 'lon') return null
+    return classifyPair(first.value, second.value)
+  }
+  if (first.axis === 'lon' || second.axis === 'lat') {
+    return classifyPair(second.value, first.value)
+  }
+
+  // no hemisphere letters - the value ranges decide which axis is which
+  return classifyPair(first.value, second.value)
+}
+
+function dmsPart(deg: string, min: string, sec: string | undefined, hemisphere: string | undefined): DmsPart | null {
+  const minutes = Number(min.replace(',', '.'))
+  const seconds = Number((sec || '0').replace(',', '.'))
+  if (minutes >= 60 || seconds >= 60) return null
+
+  let value = Number(deg) + minutes / 60 + seconds / 3600
+  let axis: DmsPart['axis'] = null
+
+  if (hemisphere) {
+    const h = hemisphere.toUpperCase()
+    axis = h === 'N' || h === 'S' ? 'lat' : 'lon'
+    if (h === 'S' || h === 'W') value = -value
+  }
+
+  return { value, axis }
 }
 
 function classifyPair(a: number, b: number): CoordinateQueryResult | null {
