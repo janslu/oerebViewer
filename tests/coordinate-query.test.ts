@@ -98,7 +98,7 @@ describe('parseCoordinateQuery', () => {
     })
 
     it('accepts degrees with decimal minutes only', () => {
-      const result = parseCoordinateQuery("46°56.8123' 7°27.8077'")
+      const result = parseCoordinateQuery('46°56.8123\' 7°27.8077\'')
 
       expect(result?.type).toBe('wgs84')
       expect(result?.lat).toBeCloseTo(46 + 56.8123 / 60, 8)
