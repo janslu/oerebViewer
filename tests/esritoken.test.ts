@@ -53,6 +53,7 @@ describe('fetchEsriToken', () => {
   })
 
   it('throws with the service message when the response contains an error', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
     vi.stubGlobal('$fetch', vi.fn().mockResolvedValue({
       error: { message: 'Invalid credentials' },
     }))
@@ -60,5 +61,6 @@ describe('fetchEsriToken', () => {
     await expect(fetchEsriToken()).rejects.toThrow(
       'Failed fetching token from https://tokens.example/generateToken with message: Invalid credentials',
     )
+    consoleError.mockRestore()
   })
 })

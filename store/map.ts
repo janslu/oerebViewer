@@ -263,9 +263,7 @@ export const useMapStore = defineStore('map', () => {
     if (zoom.value === null) return
 
     const newValue = zoom.value + 0.5
-    console.log('zoomInActionClicked', newValue, zoom.value)
     if (newValue <= maxZoom.value) {
-      console.log('zoomInActionClicked2', newValue, zoom.value)
       setZoom(newValue)
     }
   }
@@ -274,9 +272,7 @@ export const useMapStore = defineStore('map', () => {
     if (zoom.value === null) return
 
     const newValue = zoom.value - 0.5
-    console.log('zoomOutActionClicked', newValue, zoom.value)
     if (newValue >= minZoom.value) {
-      console.log('zoomOutActionClicked2', newValue, zoom.value)
       setZoom(newValue)
     }
   }

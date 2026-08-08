@@ -44,19 +44,23 @@ describe('useOereb', () => {
     })
 
     it('rejects when the service is not configured', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
       state.service = {}
 
       await expect(useOereb().getEGRID({ longitude: 7, latitude: 46 })).rejects.toThrow(
         'oerebService.getEGRIDByCoordinate is required',
       )
+      consoleError.mockRestore()
     })
 
     it('rejects when the endpoint is not a template string', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
       state.service = { getEGRIDByCoordinate: 42 }
 
       await expect(useOereb().getEGRID({ longitude: 7, latitude: 46 })).rejects.toThrow(
         'must be a string',
       )
+      consoleError.mockRestore()
     })
   })
 

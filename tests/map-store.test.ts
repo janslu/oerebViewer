@@ -237,6 +237,7 @@ describe('map store', () => {
     })
 
     it('warns and clears the preview when the egrid lookup fails', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
       const store = useMapStore()
       getEGRID.mockRejectedValue(
         Object.assign(new Error('server error'), { response: { status: 500 } }),
@@ -256,9 +257,11 @@ describe('map store', () => {
         type: 'warning',
         text: 'oereb_service_500',
       })
+      consoleError.mockRestore()
     })
 
     it('maps 204 lookup failures to the dedicated warning', async () => {
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
       const store = useMapStore()
       getEGRID.mockRejectedValue(
         Object.assign(new Error('no content'), { response: { status: 204 } }),
@@ -272,6 +275,7 @@ describe('map store', () => {
       const { useNotificationStore } = await import('~/store/notification')
       const messages = useNotificationStore().messages
       expect(messages[messages.length - 1]).toMatchObject({ text: 'oereb_service_204' })
+      consoleError.mockRestore()
     })
 
     it('only clears the selection when null is selected', async () => {
