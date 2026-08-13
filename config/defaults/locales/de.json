@@ -66,5 +66,6 @@
   "external_instructions": "Anleitung zum Portal",
   "search_coordinate_wgs84": "WGS84-Koordinate",
   "search_coordinate_lv95": "Landeskoordinate LV95",
-  "search_coordinate_lv03": "Landeskoordinate LV03"
+  "search_coordinate_lv03": "Landeskoordinate LV03",
+  "search_coordinate_outside": "ausserhalb des Kantonsgebiets"
 }

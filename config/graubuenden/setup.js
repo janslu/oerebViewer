@@ -16,6 +16,8 @@
  *  {{query}}
  */
 
+import boundary from './boundary.json'
+
 /**
  * Available locales for this app
  */
@@ -91,6 +93,12 @@ export const searchService = {
  * configuration properties from
  * https://openlayers.org/en/latest/apidoc/module-ol_layer_Tile-TileLayer.html#TileLayer
  */
+
+/**
+ * Simplified canton boundary limiting coordinate lookups
+ * regenerate: node scripts/generate-boundary.mjs (see script header)
+ */
+export const coordinateBoundary = boundary
 
 export const backgroundLayers = [
   {

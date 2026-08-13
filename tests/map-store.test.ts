@@ -14,6 +14,10 @@ vi.mock('vue-i18n', () => ({
   useI18n: () => ({ locale: ref('de'), t: (key: string) => key }),
 }))
 
+const configState = vi.hoisted(() => ({
+  boundary: null as { coordinates: number[][][][] } | null,
+}))
+
 vi.mock('~/config/setup', () => ({
   getView: async () => ({ zoom: 10, minZoom: 9, maxZoom: 22.5 }),
   getSearchService: async () => ({
@@ -30,6 +34,7 @@ vi.mock('~/config/setup', () => ({
     isHtmlFormatted: false,
   }),
   getEsriTokenService: async () => ({}),
+  getCoordinateBoundary: async () => configState.boundary,
 }))
 
 vi.mock('~/composables/useOereb', () => ({
@@ -47,6 +52,7 @@ const { useMapStore } = await import('~/store/map')
 describe('map store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    configState.boundary = null
     vi.clearAllMocks()
   })
 
@@ -126,6 +132,45 @@ describe('map store', () => {
       expect(store.searchResults[0].lat).toBeCloseTo(46.92792853, 4)
       expect(store.searchResults[0].lon).toBeCloseTo(7.45154007, 4)
       expect(store.isSearchResultLoading).toBe(false)
+    })
+
+    it('marks coordinates outside the configured boundary as disabled', async () => {
+      // 10 x 10 km square around bern city
+      configState.boundary = {
+        coordinates: [[[
+          [2600000, 1190000],
+          [2610000, 1190000],
+          [2610000, 1200000],
+          [2600000, 1200000],
+        ]]],
+      }
+      const store = useMapStore()
+      await store.initializeStore()
+      vi.stubGlobal('fetch', vi.fn())
+
+      // chur, far outside the square
+      await store.updateSearchQuery('2759410, 1191510')
+
+      expect(store.searchResults).toHaveLength(1)
+      expect(store.searchResults[0]).toMatchObject({
+        label: '2759410, 1191510 (search_coordinate_outside)',
+        $isDisabled: true,
+      })
+
+      // inside the square resolves normally
+      await store.updateSearchQuery('2600983, 1197426')
+      expect(store.searchResults[0]).toMatchObject({ x: 2600983, y: 1197426 })
+      expect(store.searchResults[0].$isDisabled).toBeUndefined()
+    })
+
+    it('ignores selection of disabled results', async () => {
+      const store = useMapStore()
+
+      await store.searchResultSelected({ $isDisabled: true, label: 'outside' })
+
+      expect(store.selectedSearchResult).toBeNull()
+      expect(store.jumpToCoordinates).toBeNull()
+      expect(getEGRID).not.toHaveBeenCalled()
     })
 
     it('resolves wgs84 coordinate queries even when no search service is configured', async () => {

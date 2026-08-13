@@ -71,6 +71,12 @@ export const searchService = {
   isHtmlFormatted: false,
 }
 
+/**
+ * Simplified canton boundary limiting coordinate lookups (LV95 multipolygon
+ * outer rings, see scripts/generate-boundary.mjs) - no restriction if null
+ */
+export const coordinateBoundary = null
+
 export const projectionDefinitions = {
   // SwissCoordinate
   2056: {

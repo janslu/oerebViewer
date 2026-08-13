@@ -49,6 +49,20 @@ test('resolves coordinate queries without the search service', async ({ page }) 
   ).toBeVisible()
 })
 
+test('rejects coordinates outside the canton boundary', async ({ page }) => {
+  await page.goto('/')
+  const input = await searchInput(page)
+
+  // chur, far outside canton bern
+  await input.pressSequentially('2759410, 1191510')
+
+  await expect(page.getByText(/ausserhalb des Kantonsgebiets/)).toBeVisible()
+
+  // the entry is not selectable, clicking its row must not navigate
+  await page.locator('li.multiselect__element', { hasText: 'ausserhalb' }).click()
+  await expect(page).toHaveURL(/#\/$/)
+})
+
 test('loads an extract from a coordinate search result', async ({ page }) => {
   await page.route('**/getegrid/**', route =>
     route.fulfill({ json: getegridFixture }),

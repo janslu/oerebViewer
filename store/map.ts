@@ -1,11 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { convertToSwissCoordinates, parseCoordinateQuery } from '~/helpers/coordinates'
-import type { CoordinateQueryResult } from '~/helpers/coordinates'
+import { convertToSwissCoordinates, parseCoordinateQuery, isWithinBoundary } from '~/helpers/coordinates'
+import type { CoordinateQueryResult, CoordinateBoundary } from '~/helpers/coordinates'
 import { usePropertyStore } from '~/store/property'
 import { useNotificationStore } from '~/store/notification'
-import { getView, getSearchService } from '~/config/setup'
+import { getView, getSearchService, getCoordinateBoundary } from '~/config/setup'
 import { stringTemplate } from '~/helpers/template'
 import { fetchEsriToken } from '~/services/esritoken'
 import { useOereb } from '~/composables/useOereb'
@@ -56,6 +56,7 @@ export const useMapStore = defineStore('map', () => {
   const contentType = ref<string>('map')
   const view = ref<ConfigObject | null>(null)
   const searchService = ref<ConfigObject | null>(null)
+  const coordinateBoundary = ref<CoordinateBoundary | null>(null)
   const minZoom = ref<number>(0)
   const maxZoom = ref<number>(42)
 
@@ -68,6 +69,7 @@ export const useMapStore = defineStore('map', () => {
     minZoom.value = viewConfig.minZoom || 0
     maxZoom.value = viewConfig.maxZoom || 42
     searchService.value = await getSearchService()
+    coordinateBoundary.value = (await getCoordinateBoundary()) as CoordinateBoundary | null
   }
 
   const isSatelliteView = computed(() => viewType.value === 'satellite')
@@ -170,6 +172,8 @@ export const useMapStore = defineStore('map', () => {
   }
 
   async function searchResultSelected(item: SearchResult) {
+    if (item?.$isDisabled) return
+
     setSelectedSearchResult(item)
 
     if (item) {
@@ -205,11 +209,27 @@ export const useMapStore = defineStore('map', () => {
       return
     }
 
-    // coordinate pairs (WGS84, LV95, LV03) are resolved locally
+    // coordinate pairs (WGS84, LV95, LV03, DMS) are resolved locally
     // instead of being sent to the search service
     const coordinate = parseCoordinateQuery(newSearchQuery)
     if (coordinate) {
       setSearchQuery(newSearchQuery)
+
+      // outside the configured canton boundary the coordinate is shown
+      // but not selectable
+      if (
+        coordinateBoundary.value
+        && !isWithinBoundary(coordinate.x, coordinate.y, coordinateBoundary.value)
+      ) {
+        setSearchResults([{
+          id: `coordinate-outside-${Math.round(coordinate.x)}-${Math.round(coordinate.y)}`,
+          label: `${newSearchQuery.trim()} (${i18n.t('search_coordinate_outside')})`,
+          $isDisabled: true,
+        }])
+        markSearchResultIsCompleted()
+        return
+      }
+
       setSearchResults([coordinateToSearchResult(coordinate, newSearchQuery)])
       markSearchResultIsCompleted()
       return

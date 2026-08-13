@@ -83,6 +83,7 @@ export const getExternalService = async (): Promise<ConfigObject> => (await getC
 export const getExternalInstructions = async (): Promise<ConfigObject> => (await getConfig()).externalInstructions
 export const getOwnerService = async (): Promise<ConfigObject> => (await getConfig()).ownerService
 export const getSearchService = async (): Promise<ConfigObject> => (await getConfig()).searchService
+export const getCoordinateBoundary = async (): Promise<ConfigObject | null> => (await getConfig()).coordinateBoundary
 export const getUserInterface = async (): Promise<ConfigObject> => (await getConfig()).userInterface
 
 // Re-export helper functions

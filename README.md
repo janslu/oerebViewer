@@ -137,6 +137,37 @@ Create a `setup.css` file in your config directory, if you want to overwrite the
 /** place your custom css here */
 ```
 
+## boundary.json
+Optional canton boundary limiting coordinate lookups in the search. Coordinates outside the boundary are shown as a disabled search result. Without this file there is no restriction.
+
+Generate it from the official swissBOUNDARIES3D dataset, where the feature id is the official canton number:
+
+```bash
+node scripts/generate-boundary.mjs <cantonNumber> config/{customdir}/boundary.json
+```
+
+```text
+ 1 Zürich       8 Glarus            15 Appenzell Ausserrhoden  22 Vaud
+ 2 Bern         9 Zug               16 Appenzell Innerrhoden   23 Valais
+ 3 Luzern      10 Fribourg          17 St. Gallen              24 Neuchâtel
+ 4 Uri         11 Solothurn         18 Graubünden              25 Genève
+ 5 Schwyz      12 Basel-Stadt       19 Aargau                  26 Jura
+ 6 Obwalden    13 Basel-Landschaft  20 Thurgau
+ 7 Nidwalden   14 Schaffhausen      21 Ticino
+```
+
+Reference it in your `setup.js`:
+
+```js
+import boundary from './boundary.json'
+
+export const coordinateBoundary = boundary
+```
+
+The geometry is simplified to 250m (to save bandwidth) and the viewer accepts points up to 1km outside of it, so the boundary is intentionally not an exact border - the ÖREB service remains the authority near the border.
+
+Both distances can be tuned: the acceptance margin is `BOUNDARY_GRACE_DISTANCE` in `helpers/coordinates.ts`, the simplification tolerance is `TOLERANCE` in `scripts/generate-boundary.mjs` (regenerate the boundary files after changing it). Keep the margin at least as large as the tolerance, otherwise simplification may reject valid border parcels.
+
 ## locales
 Add custom translations as JSON-files, for example `./config/{customdir}/locales/de.json`.
 

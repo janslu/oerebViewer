@@ -65,5 +65,6 @@
   "external_instructions": "Instructions pour le portail",
   "search_coordinate_wgs84": "Coordonnée WGS84",
   "search_coordinate_lv95": "Coordonnée nationale MN95",
-  "search_coordinate_lv03": "Coordonnée nationale MN03"
+  "search_coordinate_lv03": "Coordonnée nationale MN03",
+  "search_coordinate_outside": "hors du territoire cantonal"
 }

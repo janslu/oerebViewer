@@ -1,4 +1,5 @@
 import { transform } from 'ol/proj'
+import MultiPolygon from 'ol/geom/MultiPolygon'
 
 /**
  * Converts longitude and latitude to Swiss coordinate system (EPSG:2056)
@@ -12,6 +13,30 @@ export function convertToSwissCoordinates(lon: number, lat: number): [number, nu
   const swissCoordinates = transform(coordinates, 'EPSG:4326', 'EPSG:2056')
 
   return swissCoordinates as [number, number]
+}
+
+export interface CoordinateBoundary {
+  coordinates: number[][][][]
+}
+
+/**
+ * The boundary polygons are simplified (see scripts/generate-boundary.mjs),
+ * so points within this distance of the border still count as inside.
+ * A false rejection would block a legitimate border parcel, while a false
+ * acceptance is answered authoritatively by the oereb service anyway.
+ */
+const BOUNDARY_GRACE_DISTANCE = 1000
+
+/**
+ * Tests whether an LV95 point lies within the simplified canton boundary
+ * or its grace distance.
+ */
+export function isWithinBoundary(x: number, y: number, boundary: CoordinateBoundary): boolean {
+  const geometry = new MultiPolygon(boundary.coordinates)
+  if (geometry.intersectsCoordinate([x, y])) return true
+
+  const [cx, cy] = geometry.getClosestPoint([x, y])
+  return Math.hypot(cx - x, cy - y) <= BOUNDARY_GRACE_DISTANCE
 }
 
 export interface CoordinateQueryResult {
